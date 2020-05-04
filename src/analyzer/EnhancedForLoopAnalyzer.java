@@ -371,7 +371,6 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 				VariableDeclarationStatement vds = (VariableDeclarationStatement)block.statements().get(0);
 				VariableDeclarationFragment vdf = (VariableDeclarationFragment)vds.fragments().get(0);
 				
-				/* retirer le premier statement */
 				mapLambdaExpr.setBody(ASTNode.copySubtree(ast, vdf.getInitializer()));
 				mapLambdaExpr.parameters().add(ASTNode.copySubtree(ast, (ASTNode) lambdaExpForEach.parameters().get(0)));
 				map.arguments().add(mapLambdaExpr);
