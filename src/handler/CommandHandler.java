@@ -36,15 +36,27 @@ public class CommandHandler extends AbstractHandler {
 				.filter(e -> e instanceof IJavaProject)
 				.toArray(length -> new IJavaProject[length]);
 	
-		List<String> loopExplorerResultsHeader = new ArrayList<>(Arrays.asList(
-				"Project", "#SuperFor", "#SubFor", "#Break", "#Continue", "#Return", "#Throw", "#nfnef", "Iterable", "Path", "From", "To", "Code", "Recode"
-			));		
+		List<String> resultsHeader = new ArrayList<>(Arrays.asList(
+				"Project", "#SuperFor", "#SubFor", "#Break", "#Continue", "#Return", "#Throw", "#nfnef", "Iterable", "Path", "From", "To", "Refactorable"
+			));
+		
+		List<String> refactoringResultsHeader = new ArrayList<>(Arrays.asList(
+				"Original", "Refactoring"
+			));	
+		
 		CSVPrinter resultsPrinter = null;
+		CSVPrinter refactoringResultsPrinter = null;
 		try {
 			resultsPrinter = new CSVPrinter(
 					new FileWriter("loop-explorer-results.csv", false),
-					CSVFormat.EXCEL.withHeader(loopExplorerResultsHeader.toArray(new String[loopExplorerResultsHeader.size()]))
+					CSVFormat.EXCEL.withHeader(resultsHeader.toArray(new String[resultsHeader.size()]))
 			);
+			
+			refactoringResultsPrinter = new CSVPrinter(
+					new FileWriter("loop-explorer-refacto-results.csv", false),
+					CSVFormat.EXCEL.withHeader(refactoringResultsHeader.toArray(new String[refactoringResultsHeader.size()]))
+			);
+			
 		} catch (IOException e1) {			e1.printStackTrace();}
 		
 		// AbstractMetricSource metricSource = Dispatcher.getAbstractMetricSource(javaProject);
@@ -84,18 +96,22 @@ public class CommandHandler extends AbstractHandler {
 				resultsPrinter.print(efla.getPath());
 				resultsPrinter.print(efla.getStartLine());
 				resultsPrinter.print(efla.getEndLine());
-				resultsPrinter.print(efla.efs.toString());
-				resultsPrinter.print(efla.getRefactoring());
+				resultsPrinter.print(efla.isRefactorable() ? "Yes" : "No");
 				resultsPrinter.println();
+				
+				if (efla.isRefactorable()) {
+					refactoringResultsPrinter.print(efla.efs.toString());
+					refactoringResultsPrinter.print(efla.getRefactoring());
+					refactoringResultsPrinter.println();
+				}
 			}
 			resultsPrinter.close();
+			refactoringResultsPrinter.close();
 		}
 		catch (IOException e1)
 		{
 			e1.printStackTrace();
 		}
-
-		/* </CUSTOM CODE HERE> */
 		
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		MessageDialog.openInformation(

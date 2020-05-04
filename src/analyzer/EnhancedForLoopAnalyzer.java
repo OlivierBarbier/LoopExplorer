@@ -236,7 +236,12 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	
 	public boolean isRefactorable()
 	{
-		return false;
+		return (getNumberOfBreakStatements() == 0)
+		&& (getNumberOfContinueStatements() == 0)
+		&& (getNumberOfNeitherFinalNorEffectivelyFinalVariables() == 0)
+		&& (getNumberOfReturnStatements() == 0)
+		&& (getNumberOfSubForStatements() == 0)
+		&&(getNumberOfSuperForStatements() == 0);
 	}
 	
 	public String getFileName() {
