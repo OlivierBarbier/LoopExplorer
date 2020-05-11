@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -44,9 +45,8 @@ import org.eclipse.text.edits.TextEdit;
 
 public class EnhancedForLoopAnalyzer extends ASTVisitor
 {
-	private static ITypeBinding rteBinding;
-
-	private static ITypeBinding cltnBinding;
+	private ITypeBinding rteBinding;
+	private ITypeBinding cltnBinding;
 
 	public EnhancedForStatement efs;
 	
@@ -61,18 +61,15 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	int yf       = +0;
 	
-	public EnhancedForLoopAnalyzer(EnhancedForStatement efs)
+	public EnhancedForLoopAnalyzer(EnhancedForStatement efs,ITypeBinding rteBinding,ITypeBinding cltnBinding)
 	{
 		this.efs = efs;
+		this.rteBinding = rteBinding;
+		this.cltnBinding = cltnBinding;
 	}
 
 	public void analyze()
 	{
-		if (EnhancedForLoopAnalyzer.rteBinding == null)
-		{
-			EnhancedForLoopAnalyzer.rteBinding = resolveITypeBindingFor("java.lang.RuntimeException");
-			EnhancedForLoopAnalyzer.cltnBinding = resolveITypeBindingFor("java.util.Collection");
-		}
 		efs.accept(this);
 		
 		analyzeNumberOfSuperForStatements();
@@ -112,7 +109,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	public void endVisit(ThrowStatement efl)
 	{
-		if ( ! efl.getExpression().resolveTypeBinding().isSubTypeCompatible(EnhancedForLoopAnalyzer.rteBinding))
+		if ( ! efl.getExpression().resolveTypeBinding().isSubTypeCompatible(rteBinding))
 		{
 			thrw++;
 		}
@@ -120,29 +117,34 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	
 	public void endVisit(MethodInvocation mi)
 	{	
-		for(ITypeBinding exceptionType:mi.resolveMethodBinding().getExceptionTypes())
-		{
-			if ( ! exceptionType.isSubTypeCompatible(EnhancedForLoopAnalyzer.rteBinding)) {
-				thrw++;
+		IMethodBinding rmb = mi.resolveMethodBinding();
+		if (rmb == null) {
+			thrw++;
+		} else {
+			for(ITypeBinding exceptionType:rmb.getExceptionTypes())
+			{
+				if ( ! exceptionType.isSubTypeCompatible(rteBinding)) {
+					thrw++;
+				}
 			}
 		}
 	}
 	
-	protected ITypeBinding resolveITypeBindingFor(String qualifiedClassName)
-	{
-		try {
-			// https://stackoverflow.com/questions/25834846/resolve-bindings-for-new-created-types
-			// https://stackoverflow.com/questions/25916505/how-to-get-an-itypebinding-from-a-class-or-interface-name-string-with-eclipse			
-			ASTParser parser = ASTParser.newParser(AST.JLS13);
-			ITypeRoot itr = ((CompilationUnit)efs.getRoot()).getJavaElement().getJavaProject().findType(qualifiedClassName).getTypeRoot();
-			parser.setSource(itr);
-			parser.setResolveBindings(true);
-			CompilationUnit node = (CompilationUnit)parser.createAST(new NullProgressMonitor());
-			return ((TypeDeclaration) node.types().get(0)).resolveBinding();
-		} catch (JavaModelException e1) {
-			throw new RuntimeException("Cannot Parse "+qualifiedClassName);
-		}
-	}
+//	protected ITypeBinding resolveITypeBindingFor(String qualifiedClassName)
+//	{
+//		try {
+//			// https://stackoverflow.com/questions/25834846/resolve-bindings-for-new-created-types
+//			// https://stackoverflow.com/questions/25916505/how-to-get-an-itypebinding-from-a-class-or-interface-name-string-with-eclipse			
+//			ASTParser parser = ASTParser.newParser(AST.JLS13);
+//			ITypeRoot itr = ((CompilationUnit)efs.getRoot()).getJavaElement().getJavaProject().findType(qualifiedClassName).getTypeRoot();
+//			parser.setSource(itr);
+//			parser.setResolveBindings(true);
+//			CompilationUnit node = (CompilationUnit)parser.createAST(new NullProgressMonitor());
+//			return ((TypeDeclaration) node.types().get(0)).resolveBinding();
+//		} catch (JavaModelException e1) {
+//			throw new RuntimeException("Cannot Parse "+qualifiedClassName);
+//		}
+//	}
 	
 	public void endVisit(ReturnStatement efl)
 	{
@@ -201,7 +203,11 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	
 	public String getIterableClassName()
 	{
-		return this.efs.getExpression().resolveTypeBinding().getQualifiedName();
+		ITypeBinding tb = this.efs.getExpression().resolveTypeBinding();
+		if (tb != null)
+			return tb.getQualifiedName();
+		else 
+			return "java.lang.Iterable";
 	}
 	
 	public boolean isIteratingOverACollection()
@@ -287,14 +293,17 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		Document doc = new Document(efs.toString());
 		MethodInvocation streams = ast.newMethodInvocation();
 		
-		if (expr.resolveTypeBinding().isArray())
+		ITypeBinding tb = expr.resolveTypeBinding(); 
+		if (tb == null) {
+			return "Not resolved type";
+		} else if (tb.isArray())
 		{
 			/* java.util.Arrays(copy(expr))) */
 			streams.setExpression(ast.newName(new String[]{"java", "util", "Arrays"}));
 			streams.setName(ast.newSimpleName("stream"));
 			streams.arguments().add(ASTNode.copySubtree(ast, expr));
 		}
-		else if (expr.resolveTypeBinding().isSubTypeCompatible(EnhancedForLoopAnalyzer.cltnBinding ))
+		else if (expr.resolveTypeBinding().isSubTypeCompatible(cltnBinding ))
 		{
 			/* expr.stream() */
 			streams.setExpression((Expression) ASTNode.copySubtree(ast, expr));
