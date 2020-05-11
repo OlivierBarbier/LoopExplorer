@@ -50,7 +50,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	public EnhancedForStatement efs;
 	
-	int children = -1;
+	int children = +0;
 	int parent   = +0;
 	int brk      = +0;
 	int cntn     = +0;
@@ -73,7 +73,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 			EnhancedForLoopAnalyzer.rteBinding = resolveITypeBindingFor("java.lang.RuntimeException");
 			EnhancedForLoopAnalyzer.cltnBinding = resolveITypeBindingFor("java.util.Collection");
 		}
-		efs.accept(this);
+		efs.getBody().accept(this);
 		
 		analyzeNumberOfSuperForStatements();
 	}
