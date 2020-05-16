@@ -314,7 +314,11 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		MethodInvocation forEach = ast.newMethodInvocation();
 		LambdaExpression lambdaExpForEach = ast.newLambdaExpression();
 		lambdaExpForEach.parameters().add(ASTNode.copySubtree(ast, efs.getParameter()));	
-		lambdaExpForEach.setBody(ASTNode.copySubtree(ast, efs.getBody()));
+		try {
+			lambdaExpForEach.setBody(ASTNode.copySubtree(ast, efs.getBody()));
+		} catch (IllegalArgumentException ia) {
+			System.err.println("Problem with setting " + efs.getBody() + " as body of lambda");
+		}
 		forEach.setExpression(streams);
 		forEach.arguments().add(lambdaExpForEach);
 		forEach.setName(ast.newSimpleName("forEach"));
@@ -376,7 +380,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		if (lambdaExpForEach.getBody() instanceof Block)
 		{
 			Block block = (Block) lambdaExpForEach.getBody();
-			if (block.statements().get(0) instanceof VariableDeclarationStatement)
+			if (! block.statements().isEmpty() && block.statements().get(0) instanceof VariableDeclarationStatement)
 			{
 				MethodInvocation map = ast.newMethodInvocation();
 				map.setExpression((Expression) ASTNode.copySubtree(ast, forEach.getExpression()));
