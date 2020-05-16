@@ -52,12 +52,12 @@ public class CommandHandler extends AbstractHandler {
 			try {
 				String folder = javaProject.getProject().getLocation().toFile().getCanonicalPath();
 				resultsPrinter = new CSVPrinter(
-						new FileWriter(folder+"/loop-explorer-results.csv", false),
+						new FileWriter(folder+"/" + javaProject.getElementName() + ".loop-explorer-results.csv", false),
 						CSVFormat.EXCEL.withHeader(resultsHeader.toArray(new String[resultsHeader.size()]))
 						);
 
 				refactoringResultsPrinter = new CSVPrinter(
-						new FileWriter(folder + "/loop-explorer-refacto-results.csv", false),
+						new FileWriter(folder + "/" + javaProject.getElementName() +".loop-explorer-refacto-results.csv", false),
 						CSVFormat.EXCEL.withHeader(refactoringResultsHeader.toArray(new String[refactoringResultsHeader.size()]))
 						);
 
