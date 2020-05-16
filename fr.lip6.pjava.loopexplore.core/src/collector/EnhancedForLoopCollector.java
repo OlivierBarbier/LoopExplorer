@@ -86,6 +86,7 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 
 				for (CompilationUnit cu : parsedCu) {
 					cu.accept(new ASTVisitor() {
+						@Override
 						public void endVisit(EnhancedForStatement efl)
 						{
 

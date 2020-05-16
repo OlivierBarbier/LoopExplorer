@@ -8,10 +8,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.ui,
  org.eclipse.jdt.core,
- org.eclipse.core.runtime,
- org.eclipse.text,
- net.sourceforge.metrics.core,
- org.apache.commons.csv,
- org.eclipse.core.resources,
  fr.lip6.pjava.loopexplore.core
 Bundle-Vendor: LIP6

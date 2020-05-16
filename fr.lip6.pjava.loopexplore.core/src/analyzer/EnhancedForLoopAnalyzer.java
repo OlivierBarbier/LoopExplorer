@@ -1,14 +1,8 @@
 package analyzer;
 
-import java.util.Arrays;
-
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -24,24 +18,15 @@ import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import org.eclipse.jdt.internal.corext.dom.ASTNodes;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.text.edits.MalformedTreeException;
-import org.eclipse.text.edits.TextEdit;
 
 public class EnhancedForLoopAnalyzer extends ASTVisitor
 {
@@ -87,26 +72,31 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
     	}		
 	}
 	
+	@Override
 	public void endVisit(EnhancedForStatement efl)
 	{
 		children++;
 	}	
 	
+	@Override
 	public void endVisit(ForStatement efl)
 	{
 		children++;
 	}
 
+	@Override
 	public void endVisit(BreakStatement efl)
 	{
 		brk++;
 	}
 
+	@Override
 	public void endVisit(ContinueStatement efl)
 	{
 		cntn++;
 	}
 
+	@Override
 	public void endVisit(ThrowStatement efl)
 	{
 		if ( ! efl.getExpression().resolveTypeBinding().isSubTypeCompatible(rteBinding))
@@ -115,6 +105,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		}
 	}
 	
+	@Override
 	public void endVisit(MethodInvocation mi)
 	{	
 		IMethodBinding rmb = mi.resolveMethodBinding();
@@ -146,11 +137,13 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 //		}
 //	}
 	
+	@Override
 	public void endVisit(ReturnStatement efl)
 	{
 		rtrn++;
 	}
 
+	@Override
 	public void endVisit(SimpleName node) {
 		IBinding nodeBinding = node.resolveBinding();
 		if (node.resolveBinding() instanceof org.eclipse.jdt.core.dom.IVariableBinding) {
