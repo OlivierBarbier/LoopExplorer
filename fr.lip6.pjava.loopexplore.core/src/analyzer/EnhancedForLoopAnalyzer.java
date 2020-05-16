@@ -121,22 +121,6 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		}
 	}
 	
-//	protected ITypeBinding resolveITypeBindingFor(String qualifiedClassName)
-//	{
-//		try {
-//			// https://stackoverflow.com/questions/25834846/resolve-bindings-for-new-created-types
-//			// https://stackoverflow.com/questions/25916505/how-to-get-an-itypebinding-from-a-class-or-interface-name-string-with-eclipse			
-//			ASTParser parser = ASTParser.newParser(AST.JLS13);
-//			ITypeRoot itr = ((CompilationUnit)efs.getRoot()).getJavaElement().getJavaProject().findType(qualifiedClassName).getTypeRoot();
-//			parser.setSource(itr);
-//			parser.setResolveBindings(true);
-//			CompilationUnit node = (CompilationUnit)parser.createAST(new NullProgressMonitor());
-//			return ((TypeDeclaration) node.types().get(0)).resolveBinding();
-//		} catch (JavaModelException e1) {
-//			throw new RuntimeException("Cannot Parse "+qualifiedClassName);
-//		}
-//	}
-	
 	@Override
 	public void endVisit(ReturnStatement efl)
 	{
