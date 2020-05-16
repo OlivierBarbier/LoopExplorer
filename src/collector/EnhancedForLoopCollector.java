@@ -46,7 +46,7 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 		// Important non default setting : resolve name/type bindings for us ! yes, please, thanks !
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
-
+		
 		try {
 			// Parse the set of input files in one big pass, collect results in parsedCu
 			List<CompilationUnit> parsedCu = new ArrayList<>();
@@ -57,13 +57,24 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 						if (child.getElementType() == IJavaElement.PACKAGE_FRAGMENT) {
 							IPackageFragment fragment = (IPackageFragment) child;
 							if (fragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
-								parser.createASTs(fragment.getCompilationUnits(), new String[0], new ASTRequestor() {
-									@Override
-									public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
-										parsedCu.add(ast);
-										super.acceptAST(source, ast);
-									}
-								}, new NullProgressMonitor());
+								for (ICompilationUnit cu : fragment.getCompilationUnits()) {
+									parser.setSource(cu);
+									parser.setResolveBindings(true);
+									
+									CompilationUnit ccu = (CompilationUnit) parser.createAST(new NullProgressMonitor());
+									parsedCu.add(ccu);
+								}
+
+								// This version was supposed to be more efficient for parsing a group of files
+								// but we can only ask for type resolution of elements within this set of files
+								// So it will now work if your project has any external dependencies.
+//								parser.createASTs(fragment.getCompilationUnits(), new String[0], new ASTRequestor() {
+//									@Override
+//									public void acceptAST(ICompilationUnit source, CompilationUnit ast) {
+//										parsedCu.add(ast);
+//										super.acceptAST(source, ast);
+//									}
+//								}, new NullProgressMonitor());
 							}
 						}
 					}
@@ -81,8 +92,6 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 							EnhancedForLoopAnalyzer efla = new EnhancedForLoopAnalyzer(efl,rteBinding,cltnBinding);
 							efla.analyze();
 							enhancedForStatementSet.add(efla);
-							System.out.println("Found a EF loop :\n" + efl.toString());
-							System.out.println("Seems the type of  expr is : " + efl.getExpression().resolveTypeBinding());
 						}
 
 					});
