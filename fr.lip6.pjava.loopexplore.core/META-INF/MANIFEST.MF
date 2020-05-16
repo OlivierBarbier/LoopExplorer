@@ -8,6 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.jdt.core,
  org.eclipse.core.runtime,
  org.eclipse.text,
- org.apache.commons.csv
+ org.apache.commons.csv,
+ org.eclipse.core.resources
 Bundle-Vendor: LIP6
 Export-Package: fr.lip6.pjava.loopexplore
