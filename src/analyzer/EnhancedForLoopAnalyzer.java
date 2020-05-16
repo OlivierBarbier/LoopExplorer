@@ -295,7 +295,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		
 		ITypeBinding tb = expr.resolveTypeBinding(); 
 		if (tb == null) {
-			return "Not resolved type";
+			return "Not resolved type : " + expr.toString() ;
 		} else if (tb.isArray())
 		{
 			/* java.util.Arrays(copy(expr))) */

@@ -81,6 +81,8 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 							EnhancedForLoopAnalyzer efla = new EnhancedForLoopAnalyzer(efl,rteBinding,cltnBinding);
 							efla.analyze();
 							enhancedForStatementSet.add(efla);
+							System.out.println("Found a EF loop :\n" + efl.toString());
+							System.out.println("Seems the type of  expr is : " + efl.getExpression().resolveTypeBinding());
 						}
 
 					});
