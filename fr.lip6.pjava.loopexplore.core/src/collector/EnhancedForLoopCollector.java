@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -58,7 +57,7 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 									parser.setSource(cu);
 									parser.setResolveBindings(true);
 									
-									CompilationUnit ccu = (CompilationUnit) parser.createAST(new NullProgressMonitor());
+									CompilationUnit ccu = (CompilationUnit) parser.createAST(null);
 									parsedCu.add(ccu);
 								}
 							}
@@ -100,7 +99,7 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 		ITypeRoot itr = javaProject.findType(qualifiedClassName).getTypeRoot();
 		parser.setSource(itr);
 		parser.setResolveBindings(true);
-		CompilationUnit node = (CompilationUnit)parser.createAST(new NullProgressMonitor());
+		CompilationUnit node = (CompilationUnit)parser.createAST(null);
 		return ((TypeDeclaration) node.types().get(0)).resolveBinding();
 	}
 
