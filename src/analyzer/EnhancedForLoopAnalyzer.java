@@ -315,7 +315,13 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		LambdaExpression lambdaExpForEach = ast.newLambdaExpression();
 		lambdaExpForEach.parameters().add(ASTNode.copySubtree(ast, efs.getParameter()));	
 		try {
-			lambdaExpForEach.setBody(ASTNode.copySubtree(ast, efs.getBody()));
+			if (efs.getBody() instanceof Block) {
+				lambdaExpForEach.setBody(ASTNode.copySubtree(ast, efs.getBody()));
+			} else {
+				Block block = ast.newBlock();
+				block.statements().add(ASTNode.copySubtree(ast, efs.getBody()));
+				lambdaExpForEach.setBody(block);
+			}
 		} catch (IllegalArgumentException ia) {
 			System.err.println("Problem with setting " + efs.getBody() + " as body of lambda");
 		}
