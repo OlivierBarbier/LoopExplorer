@@ -278,7 +278,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		ASTUtil.setAST(ast);
 
 		IRefactorabeExpression refactorableExpression = 
-				RefactorableExpressionFactory.make(efs.getExpression());
+				RefactorableExpressionFactory.make(efs.getExpression(),cltnBinding);
 
 		/* <refactorableExpression.refactor()>.forEach(<lambdaExprForEach>) */
 		MethodInvocation forEach = ASTUtil.newMethodInvocation(

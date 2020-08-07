@@ -1,12 +1,13 @@
 package refactorable;
 
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import analyzer.EnhancedForLoopAnalyzer;
 
 public class RefactorableExpressionFactory {
 
-	public static IRefactorabeExpression make(Expression expr) {
+	public static IRefactorabeExpression make(Expression expr, ITypeBinding cltnBinding) {
 		IRefactorabeExpression refactorableExpression;
 		
 		/*
@@ -20,7 +21,7 @@ public class RefactorableExpressionFactory {
 		/*
 		 * <expr> -> <expr>.stream() 
 		 */		
-		else if (expr.resolveTypeBinding().isSubTypeCompatible(EnhancedForLoopAnalyzer.cltnBinding))
+		else if (expr.resolveTypeBinding().isSubTypeCompatible(cltnBinding))
 		{
 			refactorableExpression = new RefactorableCollection(expr);				
 		}
