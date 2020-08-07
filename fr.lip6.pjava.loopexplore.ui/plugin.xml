@@ -16,5 +16,12 @@
             commandId="Handler.commands.sampleCommand">
       </handler>
    </extension>
+   <extension
+         point="org.eclipse.jdt.ui.cleanUps">
+      <cleanUp
+            class="fr.lip6.pjava.loopexplore.ui.RefactorLoops"
+            id="fr.lip6.pjava.loopexplore.ui.RefactorLoops">
+      </cleanUp>
+   </extension>
 
 </plugin>
