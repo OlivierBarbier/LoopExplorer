@@ -15,7 +15,7 @@ script :
  - cd fr.lip6.pjava.loopexplore.parent && mvn -e -T 4 generate-sources install && cd - 
 
 
-jdk: oraclejdk8
+jdk: openjdk8
 
 env:
   global:
