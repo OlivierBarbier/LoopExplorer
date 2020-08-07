@@ -11,7 +11,7 @@
   
     <artifactId>fr.lip6.pjava.loopexplore.ui</artifactId>
     <packaging>eclipse-plugin</packaging>
-    <name>A default ui plugin contributing to ITS-tools.</name>
-    <description>Defines a button invoking a treatment over a GAL Specification.</description>
+    <name>UI plugin for parallel Java refactoring.</name>
+    <description>Defines a button invoking parallel Java rewrite of loops.</description>
 
 </project>
