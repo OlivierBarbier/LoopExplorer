@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="fr.lip6.pjava.loopexplore.ui.category"
+            id="fr.lip6.pjava.loopexplore.ui.refactorCommand"
+            name="Refactor Loops">
+      </command>
+      <category
+            id="fr.lip6.pjava.loopexplore.ui.category"
+            name="LoopExplore">
+      </category>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="handler.CommandHandler"
+            commandId="fr.lip6.pjava.loopexplore.ui.refactorCommand">
+      </handler>
+   </extension>
+ 
+</plugin>

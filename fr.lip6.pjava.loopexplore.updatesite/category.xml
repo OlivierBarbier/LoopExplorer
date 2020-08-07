@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="LoopExplorer Update site" url="https://github.com/OlivierBarbier/LoopExplorer/">
+      LoopExplorer update site.
+   </description>
+   <feature url="features/fr.lip6.pjava.loopexplore.feature_1.0.0.qualifier.jar" id="fr.lip6.pjava.loopexplore.feature" version="1.0.0.qualifier">
+      <category name="LoopExplorer"/>
+   </feature>
+   <category-def name="LoopExplorer" label="Loop Explorer Refactoring for parallel Java code.">
+      <description>
+         This update site hosts LoopExplorer.
+      </description>
+   </category-def>
+</site>
