@@ -46,9 +46,7 @@ public class Refactor {
 			// AbstractMetricSource metricSource = Dispatcher.getAbstractMetricSource(javaProject);
 			// Metric value = metricSource.getValue(Constants.TLOC);
 			
-			IJavaProject[] javaProjectsarr = new IJavaProject[1];
-			javaProjectsarr[0] = javaProject;
-			EnhancedForLoopCollector eflCollector = new EnhancedForLoopCollector(javaProjectsarr);
+			EnhancedForLoopCollector eflCollector = new EnhancedForLoopCollector(javaProject);
 			eflCollector.collect();
 
 			int size = eflCollector.enhancedForStatementSet.size();
