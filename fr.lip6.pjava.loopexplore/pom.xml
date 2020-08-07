@@ -11,7 +11,7 @@
   
     <artifactId>fr.lip6.pjava.loopexplore</artifactId>
     <packaging>eclipse-plugin</packaging>
-    <name>A default plugin contributing to ITS-tools.</name>
-    <description>Defines a treatment over a GAL Specification.</description>
+    <name>Core plugin for parallel Java refactoring.</name>
+    <description>Defines primitives to find and rewrite loops in Java programs.</description>
 
 </project>
