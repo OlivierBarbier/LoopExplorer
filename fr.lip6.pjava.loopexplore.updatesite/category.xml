@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <description name="PSTL Projects Update Site" url="http://coloane.lip6.fr/incubation-updates">
-      GAL Incubation Updates Site
+   <description name="LoopExplorer Update site" url="https://github.com/OlivierBarbier/LoopExplorer/">
+      LoopExplorer update site.
    </description>
    <feature url="features/fr.lip6.pjava.loopexplore.feature_1.0.0.qualifier.jar" id="fr.lip6.pjava.loopexplore.feature" version="1.0.0.qualifier">
-      <category name="Contribution"/>
+      <category name="LoopExplorer"/>
    </feature>
-   <category-def name="Contribution" label="Default Contribution to ITS-tools">
+   <category-def name="LoopExplorer" label="Loop Explorer Refactoring for parallel Java code.">
       <description>
-         This category provides a new feature for ITS-Tools.
+         This update site hosts LoopExplorer.
       </description>
    </category-def>
 </site>

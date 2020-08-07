@@ -11,8 +11,8 @@
 
     <artifactId>fr.lip6.pjava.loopexplore.updatesite</artifactId>
     <packaging>eclipse-repository</packaging>
-    <name>ITS tools contribution</name>
-    <description>Update Site for ITS-tools contribution.</description>
+    <name>LoopExplorer update site</name>
+    <description>Update Site for LoopExplorer parallel Java refactoring tool.</description>
 
     <build>
     <finalName>${project.artifactId}</finalName>

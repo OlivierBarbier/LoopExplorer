@@ -11,7 +11,7 @@
   
     <artifactId>fr.lip6.pjava.loopexplore.feature</artifactId>
     <packaging>eclipse-feature</packaging>
-    <name>Features :: Contribtuion to its-tools</name>
-    <description>Provides a contribution. </description>
+    <name>Automatic Parallel Java refactoring</name>
+    <description>Provides ability to rewrite loops to enhance parallelism.</description>
 
 </project>

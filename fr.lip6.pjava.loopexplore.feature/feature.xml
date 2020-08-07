@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="fr.lip6.pjava.loopexplore.feature"
-      label="ITS Modeler : contribution plugin"
+      label="Parallel Java Refactoring : LoopExplorer"
       version="1.0.0.qualifier"
       provider-name="LIP6">
 
-   <description url="http://ddd.lip6.fr">
-      Provides a right click action on folders and gal files 
-that builds a new file based on the contents of a GAL file.
+   <description url="https://github.com/OlivierBarbier/LoopExplorer/">
+      Provides actions on Java Projects to refactor loops to a parallel form.
    </description>
 
    <copyright url="http://www.eclipse.org/org/documents/epl-v10.php">
@@ -298,19 +297,6 @@ Everyone is permitted to copy and distribute copies of this Agreement, but in or
 
 This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation.
    </license>
-
-   <url>
-      <discovery label="ITS-Tools update site" url="https://lip6.github.io/ITSTools/"/>
-   </url>
-
-   <requires>
-      <import plugin="fr.lip6.move.gal" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="fr.lip6.move.gal.ui" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.core.filesystem"/>
-      <import plugin="org.eclipse.core.resources"/>
-   </requires>
 
    <plugin
          id="fr.lip6.pjava.loopexplore"
