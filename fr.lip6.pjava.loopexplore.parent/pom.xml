@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- Tycho requires Maven 3 -->
 	<prerequisites>
-		<maven>3.0</maven>
+		<maven>3.0.5</maven>
 	</prerequisites>
 
 
@@ -14,28 +15,28 @@
 	<artifactId>fr.lip6.pjava.loopexplore.parent</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>ITS-tools ccontribution</name>
-	<description>An example contribution of a plugin for ITS-Tools</description>
+	<name>Automatic Parallel Java</name>
+	<description>A plugin to refactor Java programs for more parallelism.</description>
 
 	<modules>
 		<!-- Logic + functionality plugin -->
 		<module>../fr.lip6.pjava.loopexplore</module>
 		<!-- ui plugin : a button to invoke the behavior -->
 		<module>../fr.lip6.pjava.loopexplore.ui</module>
-		<!-- feature plugin : to package the functionality-->
+		<!-- feature plugin : to package the functionality -->
 		<module>../fr.lip6.pjava.loopexplore.feature</module>
 		<!-- Build an update site -->
 		<module>../fr.lip6.pjava.loopexplore.updatesite</module>
 	</modules>
 
 	<scm>
-		<connection>https://github.com/yanntm/ITS-contribution.git</connection>
-		<developerConnection>https://github.com/yanntm/ITS-contribution.git</developerConnection>
-		<url>https://github.com/yanntm/ITS-contribution</url>
+		<connection>https://github.com/OlivierBarbier/LoopExplorer.git</connection>
+		<developerConnection>https://github.com/OlivierBarbier/LoopExplorer.git</developerConnection>
+		<url>https://github.com/OlivierBarbier/LoopExplorer</url>
 	</scm>
 
 	<organization>
-		<name>Sorbonne Université, UPMC and CNRS, LIP6</name>
+		<name>LIP6, Sorbonne Université and CNRS</name>
 		<url>http://www.lip6.fr</url>
 	</organization>
 
@@ -44,12 +45,14 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit-version>4.8.1</junit-version>
 		<eclipse-site>http://download.eclipse.org/releases/${platform-version-name}</eclipse-site>
-		<!-- EDIT THIS ORBIT SITE FOR NEXT RELEASE : this is oxygen.1a -->
-		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20170919201930/repository/</orbit-site>
-		<platform-version-name>oxygen</platform-version-name>
+		<!-- EDIT THIS ORBIT SITE FOR NEXT RELEASE : this is 2020-06 -->
+		<orbit-site>http://download.eclipse.org/tools/orbit/downloads/drops/R20200529191137/repository/</orbit-site>
+		<platform-version-name>2020-06</platform-version-name>
 		<tycho-version>1.0.0</tycho-version>
+		<platform-version>4.16</platform-version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 
@@ -68,7 +71,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
-				<version>2.5</version>
+				<version>2.7</version>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -82,6 +85,29 @@
 		</plugins>
 	</reporting>
 
+	<repositories>
+		<repository>
+			<id>Eclipse current release</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/${platform-version-name}</url>
+		</repository>
+		<repository>
+			<id>asm</id>
+			<layout>p2</layout>
+			<url>${orbit-site}</url>
+		</repository>
+		<repository>
+			<id>Eclipse current updates</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/eclipse/updates/${platform-version}</url>
+		</repository>
+
+		<repository>
+			<id>The central nexus</id>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+
+	</repositories>
 
 	<build>
 		<plugins>
@@ -183,22 +209,6 @@
 					</configuration>
 				</plugin>
 				<!-- OTHER PLUGINS -->
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>findbugs-maven-plugin</artifactId>
-					<version>2.5.5</version>
-					<configuration>
-						<findbugsXmlOutput>true</findbugsXmlOutput>
-						<failOnError>false</failOnError>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -302,45 +312,12 @@
 		</pluginManagement>
 	</build>
 	<pluginRepositories>
-		<!-- <pluginRepository> <id>sonatype</id> <url>http://repository.sonatype.org/content/groups/sonatype-public-grid/</url> 
-			<releases> <enabled>true</enabled> </releases> <snapshots> <enabled>true</enabled> 
-			</snapshots> </pluginRepository> Fornax Workflow Runner plugin <pluginRepository> 
-			<id>fornax</id> <url>http://www.fornax-platform.org/m2/repository</url> <releases> 
-			<enabled>true</enabled> </releases> <snapshots> <enabled>false</enabled> 
-			</snapshots> </pluginRepository> <pluginRepository> <id>The central nexus</id> 
-			<url>http://repo1.maven.org/maven2</url> </pluginRepository> <pluginRepository> 
-			<id>coloane</id> <url>https://lip6.github.io/Coloane/</url> </pluginRepository> 
-			<pluginRepository> <id>xtend</id> <url>http://build.eclipse.org/common/xtend/maven/</url> 
-			</pluginRepository> <pluginRepository> <id>codehaus-snapshots</id> <name>disable 
-			dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name> 
-			<url>http://nexus.codehaus.org/snapshots/</url> <releases> <enabled>false</enabled> 
-			</releases> <snapshots> <enabled>false</enabled> </snapshots> </pluginRepository> 
-			<pluginRepository> <id>Xtext latest</id> <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.11.0/</url> 
-			<url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/</url> 
-			</pluginRepository> -->
+		<pluginRepository>
+			<id>The central nexus</id>
+			<url>http://repo1.maven.org/maven2</url>
+		</pluginRepository>
+
 	</pluginRepositories>
 
-	<repositories>
-		<!-- <repository> <id>XText light</id> <layout>p2</layout> <url>https://yanntm.github.io/Xtext-Light/</url> 
-			</repository> -->
-
-		<repository>
-			<id>Xtext latest</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.13.0/</url>
-		</repository>
-		
-		<repository>
-			<id>ITSTools</id>
-			<layout>p2</layout>
-			<url>https://lip6.github.io/ITSTools/</url>
-		</repository>
-
-		<repository>
-			<id>Eclipse current release</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/${platform-version-name}</url>
-		</repository>
-	</repositories>
 
 </project>
