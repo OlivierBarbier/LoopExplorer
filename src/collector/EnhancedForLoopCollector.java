@@ -29,7 +29,10 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 	public void collect()
 	{
 		javaProjectsCollection
-			.parallelStream()
+			.stream()
+			
+			// Provoque un IllegalStateException
+			// .parallel()
 			
 			.flatMap((IJavaProject javaProject) -> {
 				try {

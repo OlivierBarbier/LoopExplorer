@@ -1,7 +1,5 @@
 package analyzer;
 
-import java.util.Arrays;
-
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.ITypeRoot;
@@ -23,30 +21,26 @@ import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
-import org.eclipse.jdt.internal.corext.dom.ASTNodes;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.text.edits.MalformedTreeException;
-import org.eclipse.text.edits.TextEdit;
+
+import refactorable.IRefactorabeExpression;
+import refactorable.RefactorableExpressionFactory;
+import util.ASTUtil;
 
 public class EnhancedForLoopAnalyzer extends ASTVisitor
 {
 	private static ITypeBinding rteBinding;
 
-	private static ITypeBinding cltnBinding;
+	public static ITypeBinding cltnBinding;
 
 	public EnhancedForStatement efs;
 	
@@ -70,9 +64,10 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	{
 		if (EnhancedForLoopAnalyzer.rteBinding == null)
 		{
-			EnhancedForLoopAnalyzer.rteBinding = resolveITypeBindingFor("java.lang.RuntimeException");
+			EnhancedForLoopAnalyzer.rteBinding = efs.getRoot().getAST().resolveWellKnownType("java.lang.RuntimeException");
 			EnhancedForLoopAnalyzer.cltnBinding = resolveITypeBindingFor("java.util.Collection");
 		}
+
 		efs.getBody().accept(this);
 		
 		analyzeNumberOfSuperForStatements();
@@ -133,13 +128,15 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		try {
 			// https://stackoverflow.com/questions/25834846/resolve-bindings-for-new-created-types
 			// https://stackoverflow.com/questions/25916505/how-to-get-an-itypebinding-from-a-class-or-interface-name-string-with-eclipse			
-			ASTParser parser = ASTParser.newParser(AST.JLS13);
+			ASTParser parser = ASTParser.newParser(AST.JLS8);
+			
 			ITypeRoot itr = ((CompilationUnit)efs.getRoot()).getJavaElement().getJavaProject().findType(qualifiedClassName).getTypeRoot();
 			parser.setSource(itr);
 			parser.setResolveBindings(true);
 			CompilationUnit node = (CompilationUnit)parser.createAST(new NullProgressMonitor());
 			return ((TypeDeclaration) node.types().get(0)).resolveBinding();
-		} catch (JavaModelException e1) {
+		} catch (JavaModelException e1) 
+		{
 			throw new RuntimeException("Cannot Parse "+qualifiedClassName);
 		}
 	}
@@ -282,38 +279,29 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 			return "Not Refactorable";
 		}*/
 		AST ast = this.efs.getAST();
-	
-		Expression expr = this.efs.getExpression();
-		Document doc = new Document(efs.toString());
-		MethodInvocation streams = ast.newMethodInvocation();
 		
-		if (expr.resolveTypeBinding().isArray())
-		{
-			/* java.util.Arrays(copy(expr))) */
-			streams.setExpression(ast.newName(new String[]{"java", "util", "Arrays"}));
-			streams.setName(ast.newSimpleName("stream"));
-			streams.arguments().add(ASTNode.copySubtree(ast, expr));
-		}
-		else if (expr.resolveTypeBinding().isSubTypeCompatible(EnhancedForLoopAnalyzer.cltnBinding ))
-		{
-			/* expr.stream() */
-			streams.setExpression((Expression) ASTNode.copySubtree(ast, expr));
-			streams.setName(ast.newSimpleName("stream"));
-				
-		}
-		
-		MethodInvocation forEach = ast.newMethodInvocation();
-		LambdaExpression lambdaExpForEach = ast.newLambdaExpression();
-		lambdaExpForEach.parameters().add(ASTNode.copySubtree(ast, efs.getParameter()));	
-		lambdaExpForEach.setBody(ASTNode.copySubtree(ast, efs.getBody()));
-		forEach.setExpression(streams);
-		forEach.arguments().add(lambdaExpForEach);
-		forEach.setName(ast.newSimpleName("forEach"));
+		ASTUtil.setAST(ast);
+
+		IRefactorabeExpression refactorableExpression = 
+				RefactorableExpressionFactory.make(efs.getExpression());
+
+		/* <refactorableExpression.refactor()>.forEach(<lambdaExprForEach>) */
+		MethodInvocation forEach = ASTUtil.newMethodInvocation(
+			refactorableExpression.refactor(), 
+			"forEach", 
+			ASTUtil.newLambdaExpression(
+				(ASTNode)efs.getParameter(),
+				(ASTNode)efs.getBody()
+			)
+		);
 		
 		/* Next Phase */
 		filterPhase(ast, forEach);
 		mapPhase(ast, forEach);
 		/**/
+		
+		Document doc = new Document(efs.toString());
+		
 		doc = new Document(forEach.toString());
 
 		return doc.get();
@@ -364,6 +352,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	private void mapPhase(AST ast, MethodInvocation forEach) {
 		LambdaExpression lambdaExpForEach = (LambdaExpression)forEach.arguments().get(0);
 		boolean isMapOperation = false;
+
 		if (lambdaExpForEach.getBody() instanceof Block)
 		{
 			Block block = (Block) lambdaExpForEach.getBody();
