@@ -108,7 +108,9 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	@Override
 	public void endVisit(ThrowStatement efl)
 	{
-		if ( ! efl.getExpression().resolveTypeBinding().isSubTypeCompatible(rteBinding))
+		
+		ITypeBinding resolveTypeBinding = efl.getExpression().resolveTypeBinding();
+		if ( resolveTypeBinding == null || ! resolveTypeBinding.isSubTypeCompatible(rteBinding))
 		{
 			thrw++;
 		}
