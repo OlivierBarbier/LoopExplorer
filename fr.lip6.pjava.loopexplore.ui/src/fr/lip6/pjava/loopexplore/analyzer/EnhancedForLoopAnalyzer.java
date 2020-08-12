@@ -1,4 +1,4 @@
-package analyzer;
+package fr.lip6.pjava.loopexplore.analyzer;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -22,6 +22,7 @@ import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
@@ -31,11 +32,12 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.internal.core.LambdaMethod;
 import org.eclipse.jface.text.Document;
 
-import refactorable.IRefactorabeExpression;
-import refactorable.RefactorableExpressionFactory;
-import util.ASTUtil;
+import fr.lip6.pjava.loopexplore.refactorable.IRefactorabeExpression;
+import fr.lip6.pjava.loopexplore.refactorable.RefactorableExpressionFactory;
+import fr.lip6.pjava.loopexplore.util.ASTUtil;
 
 public class EnhancedForLoopAnalyzer extends ASTVisitor
 {
@@ -55,7 +57,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	int yf       = +0;
 	
-	public EnhancedForLoopAnalyzer(EnhancedForStatement efs,ITypeBinding rteBinding,ITypeBinding cltnBinding)
+	public EnhancedForLoopAnalyzer(EnhancedForStatement efs, ITypeBinding rteBinding, ITypeBinding cltnBinding)
 	{
 		this.efs = efs;
 		this.rteBinding = rteBinding;
@@ -235,7 +237,9 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		&& (getNumberOfNeitherFinalNorEffectivelyFinalVariables() == 0)
 		&& (getNumberOfReturnStatements() == 0)
 		&& (getNumberOfSubForStatements() == 0)
-		&&(getNumberOfSuperForStatements() == 0);
+		&& (getNumberOfSuperForStatements() == 0)
+		&& (getNumberOfThrowStatements() > 0)
+		;
 	}
 	
 	public String getFileName() {
@@ -281,31 +285,81 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 		IRefactorabeExpression refactorableExpression = 
 				RefactorableExpressionFactory.make(efs.getExpression(),cltnBinding);
-
-		/* <refactorableExpression.refactor()>.forEach(<lambdaExprForEach>) */
+					
+		/* <refactorableExpression.refactor()>.forEach(fr.lip6.pjava.loopexplore.util.rethrowConsumer(<lambdaExprForEach>)) */
 		MethodInvocation forEach = ASTUtil.newMethodInvocation(
 			refactorableExpression.refactor(), 
 			"forEach", 
-			ASTUtil.newLambdaExpression(
-				(ASTNode)efs.getParameter(),
-				(ASTNode)efs.getBody()
-			)
+				ASTUtil.newLambdaExpression(
+					(ASTNode)efs.getParameter(),
+					(ASTNode)efs.getBody()
+				)
 		);
 		
 		/* Next Phase */
-		filterPhase(ast, forEach);
-		mapPhase(ast, forEach);
-		/**/
 		
-		Document doc = new Document(efs.toString());
+		boolean filtered = false;
+		boolean mapped = false;
 		
-		doc = new Document(forEach.toString());
+		int circuitBreaker = 10;
+		do {
+			filtered = filterPhase(ast, forEach);
+			// mapped = mapPhase(ast, forEach);
+			circuitBreaker--;
+			if (circuitBreaker == 0) {
+				throw new RuntimeException("Circuit breaker triggered!");
+			}
+		} while(filtered || mapped);
+		
+		forEach
+			.arguments()
+			.set(
+				0,
+				this.rethrowConsumer(ast, (ASTNode)forEach.arguments().get(0))
+			)
+		;
+
+		Document doc = new Document(ast.newExpressionStatement(forEach).toString());
 
 		return doc.get();
 	}
 
+	private MethodInvocation rethrowConsumer(AST ast, ASTNode astNode) {
+		return rethrow(ast, astNode, "rethrowConsumer");
+	}
+
+	private MethodInvocation rethrowFunction(AST ast, ASTNode astNode) {
+		return rethrow(ast, astNode, "rethrowFunction");
+	}	
+	
+	private MethodInvocation rethrow(AST ast, ASTNode astNode, String methodName) {
+		QualifiedName frlip6pjavaloopexploreutil = 
+			ast.newQualifiedName(
+				ast.newQualifiedName(
+					ast.newQualifiedName(
+						ast.newQualifiedName(
+							ast.newQualifiedName(
+								ast.newSimpleName("fr"),
+								ast.newSimpleName("lip6")
+							),
+						ast.newSimpleName("pjava")
+					),
+					ast.newSimpleName("loopexplore")
+				),
+				ast.newSimpleName("util")
+			),
+			ast.newSimpleName("LambdaExceptionUtil")
+		);
+		
+		return ASTUtil.newMethodInvocation(
+			frlip6pjavaloopexploreutil,
+			methodName,
+			(Expression)ASTNode.copySubtree(ast, astNode)
+		);
+	}	
+	
 	@SuppressWarnings("unchecked")
-	private void filterPhase(AST ast, MethodInvocation forEach) {
+	private boolean filterPhase(AST ast, MethodInvocation forEach) {
 		LambdaExpression lambdaExpForEach = (LambdaExpression)forEach.arguments().get(0);
 		boolean isFilterOperation = false;
 		Expression filterExpr = null;
@@ -337,16 +391,18 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 			lamdbaExprFilter.setBody(ASTNode.copySubtree(ast, filterExpr));
 			
 			MethodInvocation filter = ast.newMethodInvocation();
-			filter.arguments().add(lamdbaExprFilter);
+			filter.arguments().add(this.rethrowFunction(ast, (ASTNode)lamdbaExprFilter));
 			filter.setName(ast.newSimpleName("filter"));
 			filter.setExpression((Expression) ASTNode.copySubtree(ast, forEach.getExpression()));
 			
 			forEach.setExpression(filter);
 		}
+		
+		return isFilterOperation;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void mapPhase(AST ast, MethodInvocation forEach) {
+	private boolean mapPhase(AST ast, MethodInvocation forEach) {
 		LambdaExpression lambdaExpForEach = (LambdaExpression)forEach.arguments().get(0);
 		boolean isMapOperation = false;
 
@@ -364,7 +420,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 				
 				mapLambdaExpr.setBody(ASTNode.copySubtree(ast, vdf.getInitializer()));
 				mapLambdaExpr.parameters().add(ASTNode.copySubtree(ast, (ASTNode) lambdaExpForEach.parameters().get(0)));
-				map.arguments().add(mapLambdaExpr);
+				map.arguments().add(this.rethrowFunction(ast, (ASTNode) mapLambdaExpr));
 				map.setName(ast.newSimpleName("map"));
 				
 
@@ -375,7 +431,10 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 				
 				block.statements().remove(0);
 				forEach.setExpression(map);
+				isMapOperation = true;
 			}
 		}
+		
+		return isMapOperation;
 	}
 }

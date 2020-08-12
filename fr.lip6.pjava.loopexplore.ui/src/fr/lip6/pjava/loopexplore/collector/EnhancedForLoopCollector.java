@@ -1,4 +1,4 @@
-package collector;
+package fr.lip6.pjava.loopexplore.collector;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +20,7 @@ import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
-import analyzer.EnhancedForLoopAnalyzer;
+import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
 
 public class EnhancedForLoopCollector extends ASTVisitor {
 	private IJavaProject javaProject ;

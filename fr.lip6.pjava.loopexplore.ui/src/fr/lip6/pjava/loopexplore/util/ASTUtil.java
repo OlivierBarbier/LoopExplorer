@@ -1,17 +1,18 @@
-package util;
+package fr.lip6.pjava.loopexplore.util;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
 public class ASTUtil {
 
 	private static AST ast;
-
+		
 	@SuppressWarnings("unchecked")
-	public static MethodInvocation newMethodInvocation(MethodInvocation object, String methodName,
-			LambdaExpression methodArgument) {
+	public static MethodInvocation newMethodInvocation(Expression object, String methodName,
+			Expression methodArgument) {
 
 		MethodInvocation methodInvocation = ast.newMethodInvocation();
 		

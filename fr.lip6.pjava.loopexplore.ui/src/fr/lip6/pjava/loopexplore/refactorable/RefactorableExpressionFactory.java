@@ -1,9 +1,9 @@
-package refactorable;
+package fr.lip6.pjava.loopexplore.refactorable;
 
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
-import analyzer.EnhancedForLoopAnalyzer;
+import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
 
 public class RefactorableExpressionFactory {
 

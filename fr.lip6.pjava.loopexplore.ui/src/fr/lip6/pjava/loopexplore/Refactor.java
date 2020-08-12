@@ -11,8 +11,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.eclipse.jdt.core.IJavaProject;
 
-import analyzer.EnhancedForLoopAnalyzer;
-import collector.EnhancedForLoopCollector;
+import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
+import fr.lip6.pjava.loopexplore.collector.EnhancedForLoopCollector;
 
 public class Refactor {
 

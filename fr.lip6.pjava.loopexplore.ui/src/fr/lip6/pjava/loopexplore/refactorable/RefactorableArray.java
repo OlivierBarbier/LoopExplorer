@@ -1,4 +1,4 @@
-package refactorable;
+package fr.lip6.pjava.loopexplore.refactorable;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Expression;
