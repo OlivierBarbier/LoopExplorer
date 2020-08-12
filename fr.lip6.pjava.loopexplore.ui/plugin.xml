@@ -20,5 +20,16 @@
             commandId="fr.lip6.pjava.loopexplore.ui.refactorCommand">
       </handler>
    </extension>
+   <extension
+         point="org.eclipse.jdt.ui.cleanUps">
+      <cleanUp
+            class="fr.lip6.pjava.loopexplore.ui.CleanUp"
+            id="fr.lip6.pjava.loopexplore.ui.CleanUp">
+      </cleanUp>
+      <cleanUpOptionsInitializer
+            class="fr.lip6.pjava.loopexplore.ui.CleanUpOptionsInitializer"
+            cleanUpKind="saveAction">
+      </cleanUpOptionsInitializer>
+   </extension>
  
 </plugin>

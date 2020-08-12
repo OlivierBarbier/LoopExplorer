@@ -14,7 +14,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import fr.lip6.pjava.loopexplore.Refactor;
+import fr.lip6.pjava.loopexplore.ui.Refactor;
 
 
 
