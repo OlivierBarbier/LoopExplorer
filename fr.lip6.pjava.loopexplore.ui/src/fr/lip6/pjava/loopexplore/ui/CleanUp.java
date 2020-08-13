@@ -37,9 +37,22 @@ public class CleanUp implements ICleanUp {
 	}
 
 	@Override
-	public RefactoringStatus checkPreConditions(IJavaProject arg0, ICompilationUnit[] arg1, IProgressMonitor arg2)
+	public RefactoringStatus checkPreConditions(IJavaProject iJavaProject, ICompilationUnit[] iCompilationUnits, IProgressMonitor iProgressMonitor)
 			throws CoreException {
-		return new RefactoringStatus();
+		RefactoringStatus refactoringStatus = new RefactoringStatus();
+		/*
+		iProgressMonitor.subTask("Checking PreConditions");
+		try {
+			Thread.sleep(10_000);
+		} catch (InterruptedException e) {}
+		iProgressMonitor.done();
+		*/
+		/*
+		for (ICompilationUnit iCompilationUnit : iCompilationUnits) {
+			refactoringStatus.addFatalError(iCompilationUnit.getElementName() + ": Fatal Error!");
+		}
+		*/
+		return refactoringStatus;
 	}
 
 }
