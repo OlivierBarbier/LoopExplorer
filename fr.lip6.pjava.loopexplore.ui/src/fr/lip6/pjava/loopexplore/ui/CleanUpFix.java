@@ -16,7 +16,6 @@ public class CleanUpFix implements ICleanUpFix {
 	final private CompilationUnit compilationUnit;
 	final private ICompilationUnit sourceDocument;
 
-
 	public CleanUpFix(CleanUpContext context) {
 		compilationUnit = context.getAST();
 		sourceDocument  = (ICompilationUnit)compilationUnit.getJavaElement();
@@ -25,8 +24,9 @@ public class CleanUpFix implements ICleanUpFix {
 	@Override
 	public CompilationUnitChange createChange(IProgressMonitor progressMonitor) throws CoreException {
 		final ASTRewrite rewriter = ASTRewrite.create(compilationUnit.getAST());
+		
 		final CompilationUnitChange compilationUnitChange = new CompilationUnitChange(
-				"CleanUpFix", sourceDocument);
+				sourceDocument.getElementName(), sourceDocument);
 
 		compilationUnit.accept(new ASTVisitor() {
 			@Override

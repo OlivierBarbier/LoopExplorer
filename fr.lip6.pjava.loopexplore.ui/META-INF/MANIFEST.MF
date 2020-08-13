@@ -15,3 +15,4 @@ Require-Bundle: fr.lip6.pjava.loopexplore,
  org.eclipse.jdt.ui,
  org.eclipse.core.resources,
  org.eclipse.ltk.core.refactoring;bundle-version="3.11.0"
+Import-Package: org.eclipse.jdt.core.refactoring
