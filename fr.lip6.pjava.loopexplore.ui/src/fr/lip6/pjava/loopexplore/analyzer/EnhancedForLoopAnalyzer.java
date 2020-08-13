@@ -1,12 +1,8 @@
 package fr.lip6.pjava.loopexplore.analyzer;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.ITypeRoot;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -29,10 +25,8 @@ import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
-import org.eclipse.jdt.internal.core.LambdaMethod;
 import org.eclipse.jface.text.Document;
 
 import fr.lip6.pjava.loopexplore.refactorable.IRefactorabeExpression;
@@ -291,8 +285,8 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 			refactorableExpression.refactor(), 
 			"forEach", 
 				ASTUtil.newLambdaExpression(
-					(ASTNode)efs.getParameter(),
-					(ASTNode)efs.getBody()
+					efs.getParameter(),
+					efs.getBody()
 				)
 		);
 		
@@ -391,7 +385,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 			lamdbaExprFilter.setBody(ASTNode.copySubtree(ast, filterExpr));
 			
 			MethodInvocation filter = ast.newMethodInvocation();
-			filter.arguments().add(this.rethrowFunction(ast, (ASTNode)lamdbaExprFilter));
+			filter.arguments().add(this.rethrowFunction(ast, lamdbaExprFilter));
 			filter.setName(ast.newSimpleName("filter"));
 			filter.setExpression((Expression) ASTNode.copySubtree(ast, forEach.getExpression()));
 			
@@ -420,7 +414,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 				
 				mapLambdaExpr.setBody(ASTNode.copySubtree(ast, vdf.getInitializer()));
 				mapLambdaExpr.parameters().add(ASTNode.copySubtree(ast, (ASTNode) lambdaExpForEach.parameters().get(0)));
-				map.arguments().add(this.rethrowFunction(ast, (ASTNode) mapLambdaExpr));
+				map.arguments().add(this.rethrowFunction(ast, mapLambdaExpr));
 				map.setName(ast.newSimpleName("map"));
 				
 

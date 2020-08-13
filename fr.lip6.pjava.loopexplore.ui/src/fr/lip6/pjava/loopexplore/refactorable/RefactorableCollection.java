@@ -12,6 +12,7 @@ public class RefactorableCollection implements IRefactorabeExpression {
 		this.expr = expr;
 	}
 
+	@Override
 	public MethodInvocation refactor() {
 		/* .() */
 		MethodInvocation streams = expr.getAST().newMethodInvocation();

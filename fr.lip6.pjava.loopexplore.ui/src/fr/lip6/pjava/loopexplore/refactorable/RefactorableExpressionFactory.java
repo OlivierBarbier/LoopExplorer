@@ -3,8 +3,6 @@ package fr.lip6.pjava.loopexplore.refactorable;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
-import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
-
 public class RefactorableExpressionFactory {
 
 	public static IRefactorabeExpression make(Expression expr, ITypeBinding cltnBinding) {
