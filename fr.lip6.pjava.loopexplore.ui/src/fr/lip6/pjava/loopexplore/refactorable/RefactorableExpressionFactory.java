@@ -25,9 +25,9 @@ public class RefactorableExpressionFactory {
 		}
 		
 		// ICI j'ai la garantie que la source de données est un Iterable
-		// dnc il est inutile de le vérifier de façon programmatique.
-		// comme je suis dans un boucle foreach j'ai un Iterable ou un Array
-		// or je n'ai pas un array donc j'ai un Iterable (merci les cours de logique !)
+		// donc il est inutile de le vérifier de façon programmatique.
+		// Comme je suis dans un boucle foreach, j'ai un Iterable ou un Array;
+		// or je n'ai pas un array donc j'ai un Iterable.
 		else 
 		{
 			refactorableExpression = new RefactorableIterable(expr);

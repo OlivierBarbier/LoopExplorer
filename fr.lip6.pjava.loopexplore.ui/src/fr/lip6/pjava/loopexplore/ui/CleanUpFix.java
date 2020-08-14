@@ -1,9 +1,14 @@
 package fr.lip6.pjava.loopexplore.ui;
 
+import java.rmi.UnexpectedException;
+
+import javax.xml.crypto.dsig.keyinfo.RetrievalMethod;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -11,6 +16,7 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
@@ -22,7 +28,10 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.ui.cleanup.CleanUpContext;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
 
+import fr.lip6.pjava.loopexplore.refactorable.IRefactorabeExpression;
+import fr.lip6.pjava.loopexplore.refactorable.RefactorableExpressionFactory;
 import fr.lip6.pjava.loopexplore.util.ASTUtil;
+import fr.lip6.pjava.loopexplore.util.LambdaExceptionUtil;
 
 @SuppressWarnings("restriction")
 public class CleanUpFix implements ICleanUpFix {
@@ -33,6 +42,7 @@ public class CleanUpFix implements ICleanUpFix {
 	@SuppressWarnings("unused")
 	final private IJavaProject javaProject;
 	final private AST ast;
+	final private ITypeBinding collectionTypeBinding;
 
 	public CleanUpFix(CleanUpContext context) {
 		compilationUnit = context.getAST();
@@ -40,6 +50,11 @@ public class CleanUpFix implements ICleanUpFix {
 		sourceDocument  = (ICompilationUnit)compilationUnit.getJavaElement();
 		rewriter = ASTRewrite.create(compilationUnit.getAST());
 		ast = rewriter.getAST();
+		try {
+			collectionTypeBinding = ASTUtil.resolveITypeBindingFor("java.util.Collection", javaProject);
+		} catch (JavaModelException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	@Override
@@ -82,16 +97,21 @@ public class CleanUpFix implements ICleanUpFix {
 			@SuppressWarnings("unchecked")
 			@Override
 			public void endVisit(EnhancedForStatement enhancedForStatement) {
-				if (enhancedForStatement.getExpression().resolveTypeBinding().isArray()) {
+				IRefactorabeExpression refactorableExpression = 
+						RefactorableExpressionFactory.make(enhancedForStatement.getExpression(), collectionTypeBinding);
+				
+				final MethodInvocation stream = refactorableExpression.refactor();
+				
+		
 					/* .stream() */
-					final MethodInvocation stream = rewriter.getAST().newMethodInvocation();
-					stream.setName(rewriter.getAST().newSimpleName("stream"));
+					//final MethodInvocation stream = rewriter.getAST().newMethodInvocation();
+					//stream.setName(rewriter.getAST().newSimpleName("stream"));
 					
 					/* java.util.Arrays.stream() */
-					stream.setExpression(rewriter.getAST().newName(new String[]{"java", "util", "Arrays"}));
+					//stream.setExpression(rewriter.getAST().newName(new String[]{"java", "util", "Arrays"}));
 					
 					/* java.util.Arrays.stream(expr) */
-					stream.arguments().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getExpression()));
+					//stream.arguments().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getExpression()));
 					
 					
 					/*  () -> () */
@@ -106,13 +126,21 @@ public class CleanUpFix implements ICleanUpFix {
 					final MethodInvocation forEach = rewriter.getAST().newMethodInvocation();
 					forEach.setName(rewriter.getAST().newSimpleName("forEach"));
 					
-					/* stream.forEach() */
-					forEach.setExpression(stream);
-					
-					/* stream.forEach(<lambda>) */
+					/* .forEach(<lambda>) */
 					forEach.arguments().add(lambda);
 					
-					boolean hasStateChanged = filterPhase(forEach);
+					// Créer un methode parallel
+					// l'invoquer sur stream
+					final MethodInvocation parallel = rewriter.getAST().newMethodInvocation();
+					parallel.setName(rewriter.getAST().newSimpleName("parallel"));
+					parallel.setExpression(stream);
+					
+					/* stream().parallel().forEach() */
+					forEach.setExpression(parallel);
+
+					int circuitBreak = 10;
+					
+					while(circuitBreak-->0 && filterPhase(forEach));
 					
 					forEach.arguments().set(
 						0,
@@ -120,7 +148,7 @@ public class CleanUpFix implements ICleanUpFix {
 					);
 					
 					rewriter.replace(enhancedForStatement, rewriter.getAST().newExpressionStatement(forEach), null);
-				}
+				
 			}
 		});
 	}
