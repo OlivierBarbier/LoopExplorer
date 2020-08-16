@@ -21,7 +21,9 @@ import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.QualifiedName;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
 import org.eclipse.jdt.internal.corext.dom.ASTNodes;
@@ -142,9 +144,20 @@ public class CleanUpFix implements ICleanUpFix {
 					
 					while(circuitBreak-->0 && filterPhase(forEach));
 					
+					LambdaExpression le = ((LambdaExpression)forEach.arguments().get(0));
+					
+					Object parameter = le.parameters().get(0);
+					if (parameter instanceof SingleVariableDeclaration) {
+						SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
+						VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+						fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
+						parameter = fragment;
+					}
+					le.parameters().set(0, parameter);
+					
 					forEach.arguments().set(
 						0,
-						rethrowConsumer(ASTNode.copySubtree(ast, (ASTNode) forEach.arguments().get(0)))
+						rethrowConsumer(ASTNode.copySubtree(ast, le))
 					);
 					
 					rewriter.replace(enhancedForStatement, rewriter.getAST().newExpressionStatement(forEach), null);
@@ -176,7 +189,14 @@ public class CleanUpFix implements ICleanUpFix {
 						lambdaExpForEach.setBody(ASTNodes.copySubtree(rewriter.getAST(), filterStmt));
 
 						LambdaExpression lamdbaExprFilter = rewriter.getAST().newLambdaExpression();
-						lamdbaExprFilter.parameters().add(ASTNodes.copySubtree(rewriter.getAST(), (ASTNode) ((LambdaExpression)forEach.arguments().get(0)).parameters().get(0)));
+						Object parameter = ((LambdaExpression)forEach.arguments().get(0)).parameters().get(0);
+						if (parameter instanceof SingleVariableDeclaration) {
+							SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
+							VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+							fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
+							parameter = fragment;
+						}
+						lamdbaExprFilter.parameters().add(ASTNodes.copySubtree(rewriter.getAST(), (ASTNode) parameter));
 						lamdbaExprFilter.setBody(ASTNodes.copySubtree(rewriter.getAST(), filterExpr));
 						
 						MethodInvocation filter = rewriter.getAST().newMethodInvocation();
