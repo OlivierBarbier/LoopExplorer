@@ -1,7 +1,10 @@
 package fr.lip6.pjava.loopexplore.refactorable;
 
+import java.util.Arrays;
+
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.CreationReference;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 
@@ -44,7 +47,24 @@ public class RefactorableIterable implements IRefactorabeExpression {
 		streams.arguments().add(ast.newBooleanLiteral(false));
 
 		/* java.util.stream.StreamSupport.stream(expr.spliterator(), false) */
-		return streams;
+		
+		/* java.util.stream.StreamSupport.stream(expr.spliterator(), false).toArray() */
+		MethodInvocation toArray = ast.newMethodInvocation();
+		toArray.setName(ast.newSimpleName("toArray"));
+		toArray.setExpression(streams);
+		
+		CreationReference ref = ast.newCreationReference();
+		ref.setType(ast.newArrayType(ast.newSimpleType(ast.newSimpleName("ImageSource"))));
+		
+		toArray.arguments().add(ref);
+		
+		/* java.util.Arrays.stream(java.util.stream.StreamSupport.stream(expr.spliterator(), false).toArray()) */
+		MethodInvocation outerStream = ast.newMethodInvocation();
+		outerStream.setName(ast.newSimpleName("stream"));
+		outerStream.setExpression(ast.newName("java.util.Arrays"));
+		outerStream.arguments().add(toArray);
+		
+		return outerStream;
 	}
 
 }
