@@ -1,5 +1,8 @@
 package fr.lip6.pjava.loopexplore.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -28,6 +31,7 @@ import org.eclipse.jdt.ui.cleanup.CleanUpContext;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
 
 import fr.lip6.pjava.loopexplore.analyzer.CommonBindings;
+import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
 import fr.lip6.pjava.loopexplore.refactorable.IRefactorabeExpression;
 import fr.lip6.pjava.loopexplore.refactorable.RefactorableExpressionFactory;
 import fr.lip6.pjava.loopexplore.util.ASTUtil;
@@ -89,87 +93,99 @@ public class CleanUpFix implements ICleanUpFix {
 		});		
 	}
 
-	int changed = 0;
 	private int rewriteRule02() {
-		changed = 0;
+		List<EnhancedForLoopAnalyzer> enhancedForStatementSet = new ArrayList<>();
 		compilationUnit.accept(new ASTVisitor() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public void endVisit(EnhancedForStatement enhancedForStatement) {
-				IRefactorabeExpression refactorableExpression = 
-						RefactorableExpressionFactory.make(enhancedForStatement.getExpression(), cb);
-				
-				final MethodInvocation stream = refactorableExpression.refactor();
-				
+			public void endVisit(EnhancedForStatement efl) {
+				EnhancedForLoopAnalyzer efla = new EnhancedForLoopAnalyzer(efl,cb);
+				efla.analyze();
+				enhancedForStatementSet.add(efla);
+			}
+		});
 		
-				if (preconditions(enhancedForStatement)) {
-					changed ++;
-					/* .stream() */
-					//final MethodInvocation stream = rewriter.getAST().newMethodInvocation();
-					//stream.setName(rewriter.getAST().newSimpleName("stream"));
-					
-					/* java.util.Arrays.stream() */
-					//stream.setExpression(rewriter.getAST().newName(new String[]{"java", "util", "Arrays"}));
-					
-					/* java.util.Arrays.stream(expr) */
-					//stream.arguments().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getExpression()));
-					
-					
-					/*  () -> () */
-					final LambdaExpression lambda = rewriter.getAST().newLambdaExpression();
-					
-					/*  (<enhancedForStatement.getParameter()>) -> <enhancedForStatement.getBody(>) */
-					lambda.parameters().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getParameter()));
-					setLambdaBody(lambda, enhancedForStatement.getBody());
-					
-					
-					/* .forEach() */
-					final MethodInvocation forEach = rewriter.getAST().newMethodInvocation();
-					forEach.setName(rewriter.getAST().newSimpleName("forEach"));
-					
-					/* .forEach(<lambda>) */
-					forEach.arguments().add(lambda);
-					
-					// Créer un methode parallel
-					// l'invoquer sur stream
-					final MethodInvocation parallel = rewriter.getAST().newMethodInvocation();
-					parallel.setName(rewriter.getAST().newSimpleName("parallel"));
-					parallel.setExpression(stream);
-					
-					/* stream().parallel().forEach() */
-					forEach.setExpression(parallel);
+		int changes = 0;
+		for (EnhancedForLoopAnalyzer efla : enhancedForStatementSet) {
 
-					int circuitBreak = 10;
+			EnhancedForStatement enhancedForStatement = efla.getEFS();
+			IRefactorabeExpression refactorableExpression = 
+					RefactorableExpressionFactory.make(enhancedForStatement.getExpression(), cb);
+
+			final MethodInvocation stream = refactorableExpression.refactor();
+
+			
+			if (efla.isRefactorable()) {
+				changes ++;
+				/* .stream() */
+				//final MethodInvocation stream = rewriter.getAST().newMethodInvocation();
+				//stream.setName(rewriter.getAST().newSimpleName("stream"));
+
+				/* java.util.Arrays.stream() */
+				//stream.setExpression(rewriter.getAST().newName(new String[]{"java", "util", "Arrays"}));
+
+				/* java.util.Arrays.stream(expr) */
+				//stream.arguments().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getExpression()));
+
+
+				/*  () -> () */
+				final LambdaExpression lambda = rewriter.getAST().newLambdaExpression();
+
+				/*  (<enhancedForStatement.getParameter()>) -> <enhancedForStatement.getBody(>) */
+				lambda.parameters().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getParameter()));
+				setLambdaBody(lambda, enhancedForStatement.getBody());
+
+
+				/* .forEach() */
+				final MethodInvocation forEach = rewriter.getAST().newMethodInvocation();
+				forEach.setName(rewriter.getAST().newSimpleName("forEach"));
+
+				/* .forEach(<lambda>) */
+				forEach.arguments().add(lambda);
+
+				// Créer un methode parallel
+				// l'invoquer sur stream
+				final MethodInvocation parallel = rewriter.getAST().newMethodInvocation();
+				parallel.setName(rewriter.getAST().newSimpleName("parallel"));
+				parallel.setExpression(stream);
+
+				/* stream().parallel().forEach() */
+				forEach.setExpression(parallel);
+
+				int circuitBreak = 10;
+
+				while(circuitBreak-->0 && filterPhase(forEach));
+
+				LambdaExpression le = ((LambdaExpression)forEach.arguments().get(0));
+
+				Object parameter = le.parameters().get(0);
+				if (parameter instanceof SingleVariableDeclaration) {
+					SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
+					VariableDeclarationFragment fragment = getAst().newVariableDeclarationFragment();
+					fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
 					
-					while(circuitBreak-->0 && filterPhase(forEach));
-					
-					LambdaExpression le = ((LambdaExpression)forEach.arguments().get(0));
-					
-					Object parameter = le.parameters().get(0);
-					if (parameter instanceof SingleVariableDeclaration) {
-						SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
-						VariableDeclarationFragment fragment = getAst().newVariableDeclarationFragment();
-						fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
-						parameter = fragment;
-					}
-					le.parameters().set(0, parameter);
-					
+					parameter = fragment;
+				}
+				le.parameters().set(0, parameter);
+
+				if (efla.getNumberOfThrowStatements() == 0) {
+					forEach.arguments().set(
+							0,
+							ASTNode.copySubtree(getAst(), le)
+							);
+				} else {
 					forEach.arguments().set(
 						0,
 						rethrowConsumer(ASTNode.copySubtree(getAst(), le))
-					);
-					
-					rewriter.replace(enhancedForStatement, rewriter.getAST().newExpressionStatement(forEach), null);
+						);
 				}
+				
+				rewriter.replace(enhancedForStatement, rewriter.getAST().newExpressionStatement(forEach), null);
 			}
-
-			private boolean preconditions(EnhancedForStatement enhancedForStatement) {
-				// TODO check preconditions
-				return true;
-			}
-		});
-		return changed;
+		}
+		return changes;
 	}
+
 	
 	@SuppressWarnings({ "unchecked", "restriction" })
 	private boolean filterPhase(MethodInvocation forEach) {
