@@ -36,18 +36,16 @@ import fr.lip6.pjava.loopexplore.util.LambdaExceptionUtil;
 public class CleanUpFix implements ICleanUpFix {
 
 	final private CompilationUnit compilationUnit;
-	final private ICompilationUnit sourceDocument;
-	final private ASTRewrite rewriter;
 	final private IJavaProject javaProject;
-	final private AST ast;
+
+	final private ASTRewrite rewriter;
+	
 	final private ITypeBinding collectionTypeBinding;
 
 	public CleanUpFix(CleanUpContext context) {
 		compilationUnit = context.getAST();
 		javaProject = compilationUnit.getJavaElement().getJavaProject();
-		sourceDocument  = (ICompilationUnit)compilationUnit.getJavaElement();
 		rewriter = ASTRewrite.create(compilationUnit.getAST());
-		ast = rewriter.getAST();
 		try {
 			collectionTypeBinding = ASTUtil.resolveITypeBindingFor("java.util.Collection", javaProject);
 		} catch (JavaModelException e) {
@@ -57,11 +55,11 @@ public class CleanUpFix implements ICleanUpFix {
 
 	@Override
 	public CompilationUnitChange createChange(IProgressMonitor progressMonitor) throws CoreException {
+		ICompilationUnit sourceDocument = (ICompilationUnit)compilationUnit.getJavaElement();
 		final CompilationUnitChange compilationUnitChange = new CompilationUnitChange(
 			sourceDocument.getElementName(), sourceDocument);
 
-		rewriteRule02();
-
+		int changes = rewriteRule02();
 		compilationUnitChange.setEdit(rewriter.rewriteAST());
 		return compilationUnitChange;
 	}
@@ -90,7 +88,9 @@ public class CleanUpFix implements ICleanUpFix {
 		});		
 	}
 
-	private void rewriteRule02() {
+	int changed = 0;
+	private int rewriteRule02() {
+		changed = 0;
 		compilationUnit.accept(new ASTVisitor() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -101,6 +101,8 @@ public class CleanUpFix implements ICleanUpFix {
 				final MethodInvocation stream = refactorableExpression.refactor();
 				
 		
+				if (preconditions(enhancedForStatement)) {
+					changed ++;
 					/* .stream() */
 					//final MethodInvocation stream = rewriter.getAST().newMethodInvocation();
 					//stream.setName(rewriter.getAST().newSimpleName("stream"));
@@ -145,7 +147,7 @@ public class CleanUpFix implements ICleanUpFix {
 					Object parameter = le.parameters().get(0);
 					if (parameter instanceof SingleVariableDeclaration) {
 						SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
-						VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+						VariableDeclarationFragment fragment = getAst().newVariableDeclarationFragment();
 						fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
 						parameter = fragment;
 					}
@@ -153,13 +155,19 @@ public class CleanUpFix implements ICleanUpFix {
 					
 					forEach.arguments().set(
 						0,
-						rethrowConsumer(ASTNode.copySubtree(ast, le))
+						rethrowConsumer(ASTNode.copySubtree(getAst(), le))
 					);
 					
 					rewriter.replace(enhancedForStatement, rewriter.getAST().newExpressionStatement(forEach), null);
-				
+				}
+			}
+
+			private boolean preconditions(EnhancedForStatement enhancedForStatement) {
+				// TODO check preconditions
+				return true;
 			}
 		});
+		return changed;
 	}
 	
 	@SuppressWarnings({ "unchecked", "restriction" })
@@ -187,7 +195,7 @@ public class CleanUpFix implements ICleanUpFix {
 						Object parameter = ((LambdaExpression)forEach.arguments().get(0)).parameters().get(0);
 						if (parameter instanceof SingleVariableDeclaration) {
 							SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
-							VariableDeclarationFragment fragment = ast.newVariableDeclarationFragment();
+							VariableDeclarationFragment fragment = getAst().newVariableDeclarationFragment();
 							fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
 							parameter = fragment;
 						}
@@ -237,12 +245,16 @@ public class CleanUpFix implements ICleanUpFix {
 	}	
 	
 	private MethodInvocation rethrow(ASTNode astNode, String methodName) {
-		QualifiedName frlip6pjavaloopexploreutil = (QualifiedName) ast.newName("fr.lip6.pjava.loopexplore.util.LambdaExceptionUtil");
-		ASTUtil.setAST(ast);
+		QualifiedName frlip6pjavaloopexploreutil = (QualifiedName) getAst().newName("fr.lip6.pjava.loopexplore.util.LambdaExceptionUtil");
+		ASTUtil.setAST(getAst());
 		return ASTUtil.newMethodInvocation(
 			frlip6pjavaloopexploreutil,
 			methodName,
 			(Expression)astNode
 		);
+	}
+
+	private AST getAst() {
+		return rewriter.getAST();
 	}
 }
