@@ -1,11 +1,12 @@
 package fr.lip6.pjava.loopexplore.refactorable;
 
 import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.ITypeBinding;
+
+import fr.lip6.pjava.loopexplore.analyzer.CommonBindings;
 
 public class RefactorableExpressionFactory {
 
-	public static IRefactorabeExpression make(Expression expr, ITypeBinding cltnBinding) {
+	public static IRefactorabeExpression make(Expression expr, CommonBindings cb) {
 		IRefactorabeExpression refactorableExpression;
 		
 		/*
@@ -19,7 +20,7 @@ public class RefactorableExpressionFactory {
 		/*
 		 * <expr> -> <expr>.stream() 
 		 */		
-		else if (expr.resolveTypeBinding().isSubTypeCompatible(cltnBinding))
+		else if (expr.resolveTypeBinding().isSubTypeCompatible(cb.getCollectionBinding()))
 		{
 			refactorableExpression = new RefactorableCollection(expr);				
 		}

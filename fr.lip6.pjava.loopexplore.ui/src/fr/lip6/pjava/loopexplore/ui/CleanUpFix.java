@@ -27,6 +27,7 @@ import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.ui.cleanup.CleanUpContext;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
 
+import fr.lip6.pjava.loopexplore.analyzer.CommonBindings;
 import fr.lip6.pjava.loopexplore.refactorable.IRefactorabeExpression;
 import fr.lip6.pjava.loopexplore.refactorable.RefactorableExpressionFactory;
 import fr.lip6.pjava.loopexplore.util.ASTUtil;
@@ -40,14 +41,14 @@ public class CleanUpFix implements ICleanUpFix {
 
 	final private ASTRewrite rewriter;
 	
-	final private ITypeBinding collectionTypeBinding;
+	final private CommonBindings cb;
 
 	public CleanUpFix(CleanUpContext context) {
 		compilationUnit = context.getAST();
 		javaProject = compilationUnit.getJavaElement().getJavaProject();
 		rewriter = ASTRewrite.create(compilationUnit.getAST());
 		try {
-			collectionTypeBinding = ASTUtil.resolveITypeBindingFor("java.util.Collection", javaProject);
+			cb = new CommonBindings(javaProject);
 		} catch (JavaModelException e) {
 			throw new RuntimeException(e.getMessage());
 		}
@@ -96,7 +97,7 @@ public class CleanUpFix implements ICleanUpFix {
 			@Override
 			public void endVisit(EnhancedForStatement enhancedForStatement) {
 				IRefactorabeExpression refactorableExpression = 
-						RefactorableExpressionFactory.make(enhancedForStatement.getExpression(), collectionTypeBinding);
+						RefactorableExpressionFactory.make(enhancedForStatement.getExpression(), cb);
 				
 				final MethodInvocation stream = refactorableExpression.refactor();
 				

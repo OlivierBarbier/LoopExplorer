@@ -10,16 +10,14 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
-import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 
+import fr.lip6.pjava.loopexplore.analyzer.CommonBindings;
 import fr.lip6.pjava.loopexplore.analyzer.EnhancedForLoopAnalyzer;
 
 public class EnhancedForLoopCollector extends ASTVisitor {
@@ -66,16 +64,14 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 				}
 			}
 			if (!parsedCu.isEmpty()) {
-				ITypeBinding rteBinding = resolveITypeBindingFor("java.lang.RuntimeException",javaProject,parser,parsedCu.get(0));
-				ITypeBinding cltnBinding = resolveITypeBindingFor("java.util.Collection",javaProject,parser,parsedCu.get(0));
-
+				CommonBindings cb = new CommonBindings(javaProject);
 				for (CompilationUnit cu : parsedCu) {
 					cu.accept(new ASTVisitor() {
 						@Override
 						public void endVisit(EnhancedForStatement efl)
 						{
 
-							EnhancedForLoopAnalyzer efla = new EnhancedForLoopAnalyzer(efl,rteBinding,cltnBinding);
+							EnhancedForLoopAnalyzer efla = new EnhancedForLoopAnalyzer(efl,cb);
 							efla.analyze();
 							enhancedForStatementSet.add(efla);
 						}
@@ -91,16 +87,5 @@ public class EnhancedForLoopCollector extends ASTVisitor {
 	}
 
 
-	private ITypeBinding resolveITypeBindingFor(String qualifiedClassName, IJavaProject javaProject, ASTParser parser, CompilationUnit cu) throws JavaModelException {
-		ITypeBinding res = cu.getAST().resolveWellKnownType(qualifiedClassName);
-		if (res != null) {
-			return res;
-		}
-		ITypeRoot itr = javaProject.findType(qualifiedClassName).getTypeRoot();
-		parser.setSource(itr);
-		parser.setResolveBindings(true);
-		CompilationUnit node = (CompilationUnit)parser.createAST(null);
-		return ((TypeDeclaration) node.types().get(0)).resolveBinding();
-	}
 
 }

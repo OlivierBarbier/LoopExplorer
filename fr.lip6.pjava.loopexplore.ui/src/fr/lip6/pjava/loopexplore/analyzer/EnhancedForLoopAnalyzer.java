@@ -35,9 +35,7 @@ import fr.lip6.pjava.loopexplore.util.ASTUtil;
 
 public class EnhancedForLoopAnalyzer extends ASTVisitor
 {
-	private ITypeBinding rteBinding;
-	private ITypeBinding cltnBinding;
-
+	private CommonBindings cb;
 	public EnhancedForStatement efs;
 	
 	int children = +0;
@@ -51,11 +49,10 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	int yf       = +0;
 	
-	public EnhancedForLoopAnalyzer(EnhancedForStatement efs, ITypeBinding rteBinding, ITypeBinding cltnBinding)
+	public EnhancedForLoopAnalyzer(EnhancedForStatement efs, CommonBindings cb)
 	{
 		this.efs = efs;
-		this.rteBinding = rteBinding;
-		this.cltnBinding = cltnBinding;
+		this.cb = cb;
 	}
 
 	public void analyze()
@@ -106,7 +103,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	{
 		
 		ITypeBinding resolveTypeBinding = efl.getExpression().resolveTypeBinding();
-		if ( resolveTypeBinding == null || ! resolveTypeBinding.isSubTypeCompatible(rteBinding))
+		if ( resolveTypeBinding == null || ! resolveTypeBinding.isSubTypeCompatible(cb.getRuntimeException()))
 		{
 			thrw++;
 		}
@@ -121,7 +118,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		} else {
 			for(ITypeBinding exceptionType:rmb.getExceptionTypes())
 			{
-				if ( ! exceptionType.isSubTypeCompatible(rteBinding)) {
+				if ( ! exceptionType.isSubTypeCompatible(cb.getRuntimeException())) {
 					thrw++;
 				}
 			}
@@ -278,7 +275,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		ASTUtil.setAST(ast);
 
 		IRefactorabeExpression refactorableExpression = 
-				RefactorableExpressionFactory.make(efs.getExpression(),cltnBinding);
+				RefactorableExpressionFactory.make(efs.getExpression(),cb);
 					
 		/* <refactorableExpression.refactor()>.forEach(fr.lip6.pjava.loopexplore.util.rethrowConsumer(<lambdaExprForEach>)) */
 		MethodInvocation forEach = ASTUtil.newMethodInvocation(
