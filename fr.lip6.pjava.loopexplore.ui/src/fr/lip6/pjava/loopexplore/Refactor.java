@@ -84,7 +84,7 @@ public class Refactor {
 					resultsPrinter.println();
 
 					if (efla.isRefactorable()) {
-						refactoringResultsPrinter.print(efla.efs.toString());
+						refactoringResultsPrinter.print(efla.getEFS().toString());
 						refactoringResultsPrinter.print(efla.getRefactoring());
 						refactoringResultsPrinter.println();
 					}
