@@ -6,12 +6,15 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 
 public class ASTUtil {
 
@@ -42,7 +45,7 @@ public class ASTUtil {
 		lambdaExpression.parameters().add(ASTNode.copySubtree(ast, lamdbaArgument));
 		
 		/*  (<efs.getParameter()>) -> <efs.getBody(>) */
-		lambdaExpression.setBody(ASTNode.copySubtree(ast, lambdaBody));
+		setLambdaBody(lambdaExpression, lambdaBody, ast);
 		
 		return lambdaExpression;
 	}
@@ -67,6 +70,20 @@ public class ASTUtil {
 		parser.setResolveBindings(true);
 		CompilationUnit node = (CompilationUnit)parser.createAST(null);
 		return ((TypeDeclaration) node.types().get(0)).resolveBinding();
+	}
+
+	public static void setLambdaBody(LambdaExpression lambda, ASTNode body, AST ast) {
+		if (body instanceof Block) {
+			lambda.setBody(ASTNodes.copySubtree(ast, body));
+		} else if (body instanceof ExpressionStatement){
+			// ExpressionStatement
+			lambda.setBody(ASTNodes.copySubtree(ast, ((ExpressionStatement) body).getExpression()));								
+		} else {
+			// add a block
+			Block block = (Block) ast.createInstance(ASTNode.BLOCK);
+			block.statements().add(ASTNodes.copySubtree(ast, body));
+			lambda.setBody(block);											
+		}
 	}
 
 }

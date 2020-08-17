@@ -15,7 +15,6 @@ import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnhancedForStatement;
 import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.LambdaExpression;
@@ -133,7 +132,7 @@ public class CleanUpFix implements ICleanUpFix {
 
 				/*  (<enhancedForStatement.getParameter()>) -> <enhancedForStatement.getBody(>) */
 				lambda.parameters().add(ASTNodes.copySubtree(rewriter.getAST(), enhancedForStatement.getParameter()));
-				setLambdaBody(lambda, enhancedForStatement.getBody());
+				ASTUtil.setLambdaBody(lambda, enhancedForStatement.getBody(),getAst());
 
 
 				/* .forEach() */
@@ -163,7 +162,6 @@ public class CleanUpFix implements ICleanUpFix {
 					SingleVariableDeclaration variable = (SingleVariableDeclaration)parameter;
 					VariableDeclarationFragment fragment = getAst().newVariableDeclarationFragment();
 					fragment.setName(ASTNodes.copySubtree(rewriter.getAST(), variable.getName()));
-					
 					parameter = fragment;
 				}
 				le.parameters().set(0, parameter);
@@ -207,7 +205,7 @@ public class CleanUpFix implements ICleanUpFix {
 						filterExpr = ifStmt.getExpression();
 						filterStmt = ifStmt.getThenStatement();
 						
-						setLambdaBody(lambdaExpForEach, filterStmt);
+						ASTUtil.setLambdaBody(lambdaExpForEach, filterStmt, getAst());
 						LambdaExpression lamdbaExprFilter = rewriter.getAST().newLambdaExpression();
 						Object parameter = ((LambdaExpression)forEach.arguments().get(0)).parameters().get(0);
 						if (parameter instanceof SingleVariableDeclaration) {
@@ -233,20 +231,6 @@ public class CleanUpFix implements ICleanUpFix {
 		return isFilterOperation;
 	}
 
-	private void setLambdaBody(LambdaExpression lambda, Statement body) {
-		if (body instanceof Block) {
-			lambda.setBody(ASTNodes.copySubtree(rewriter.getAST(), body));
-		} else if (body instanceof ExpressionStatement){
-			// ExpressionStatement
-			lambda.setBody(ASTNodes.copySubtree(rewriter.getAST(), ((ExpressionStatement) body).getExpression()));								
-		} else {
-			// add a block
-			Block block = (Block) rewriter.getAST().createInstance(ASTNode.BLOCK);
-			block.statements().add(ASTNodes.copySubtree(rewriter.getAST(), body));
-			lambda.setBody(block);											
-		}
-	}
-	
 	@SuppressWarnings("unused")
 	private MethodInvocation rethrowConsumer(ASTNode astNode) {
 		return rethrow(astNode, "rethrowConsumer");
