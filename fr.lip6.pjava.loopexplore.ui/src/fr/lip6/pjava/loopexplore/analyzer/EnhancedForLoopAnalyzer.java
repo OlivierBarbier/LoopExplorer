@@ -57,14 +57,14 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 
 	public void analyze()
 	{
-		efs.getBody().accept(this);
+		getEFS().getBody().accept(this);
 		
 		analyzeNumberOfSuperForStatements();
 	}
 	
 	private void analyzeNumberOfSuperForStatements()
 	{
-    	ASTNode node = efs.getParent();
+    	ASTNode node = getEFS().getParent();
     	while(node != null)
     	{
     		if (node instanceof EnhancedForStatement || node instanceof ForStatement) {
@@ -136,7 +136,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		IBinding nodeBinding = node.resolveBinding();
 		if (node.resolveBinding() instanceof org.eclipse.jdt.core.dom.IVariableBinding) {
 			IVariableBinding nodeVariablebinding = (IVariableBinding)nodeBinding;
-			if ( ! nodeVariablebinding.getName().equals(efs.getParameter().getName().getIdentifier()))
+			if ( ! nodeVariablebinding.getName().equals(getEFS().getParameter().getName().getIdentifier()))
 			{
 				int flags = nodeVariablebinding.getModifiers();
 				
@@ -184,7 +184,7 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 	
 	public String getIterableClassName()
 	{
-		ITypeBinding tb = this.efs.getExpression().resolveTypeBinding();
+		ITypeBinding tb = this.getEFS().getExpression().resolveTypeBinding();
 		if (tb != null)
 			return tb.getQualifiedName();
 		else 
@@ -229,40 +229,40 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		&& (getNumberOfReturnStatements() == 0)
 		&& (getNumberOfSubForStatements() == 0)
 		&& (getNumberOfSuperForStatements() == 0)
-		&& (getNumberOfThrowStatements() > 0)
+		//&& (getNumberOfThrowStatements() > 0)
 		;
 	}
 	
 	public String getFileName() {
-		CompilationUnit root  = (CompilationUnit) efs.getRoot();
+		CompilationUnit root  = (CompilationUnit) getEFS().getRoot();
 		ICompilationUnit javaSourceFile = (ICompilationUnit)root.getJavaElement();
 		return javaSourceFile.getElementName();
 	}
 	
 	public String getPackageName() {
-		CompilationUnit root  = (CompilationUnit) efs.getRoot();
+		CompilationUnit root  = (CompilationUnit) getEFS().getRoot();
 		ICompilationUnit javaSourceFile = (ICompilationUnit)root.getJavaElement();
 		return javaSourceFile.getParent().getElementName();
 	}
 	
 	public String getProjectName() {
-		CompilationUnit root  = (CompilationUnit) efs.getRoot();
+		CompilationUnit root  = (CompilationUnit) getEFS().getRoot();
 		ICompilationUnit javaSourceFile = (ICompilationUnit)root.getJavaElement();
 		return javaSourceFile.getJavaProject().getElementName();
 	}
 
 	public String getPath() {
-		CompilationUnit root  = (CompilationUnit) efs.getRoot();
+		CompilationUnit root  = (CompilationUnit) getEFS().getRoot();
 		ICompilationUnit javaSourceFile = (ICompilationUnit)root.getJavaElement();
 		return javaSourceFile.getPath().toString();
 	}
 	
 	public int getStartLine() {
-		return ((CompilationUnit)efs.getRoot()).getLineNumber(efs.getStartPosition());
+		return ((CompilationUnit)getEFS().getRoot()).getLineNumber(getEFS().getStartPosition());
 	}
 	
 	public int getEndLine() {
-		return ((CompilationUnit)efs.getRoot()).getLineNumber(efs.getStartPosition()+efs.getLength());		
+		return ((CompilationUnit)getEFS().getRoot()).getLineNumber(getEFS().getStartPosition()+getEFS().getLength());		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -270,20 +270,20 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		/*if ( ! isRefactorable()) {
 			return "Not Refactorable";
 		}*/
-		AST ast = this.efs.getAST();
+		AST ast = this.getEFS().getAST();
 		
 		ASTUtil.setAST(ast);
 
 		IRefactorabeExpression refactorableExpression = 
-				RefactorableExpressionFactory.make(efs.getExpression(),cb);
+				RefactorableExpressionFactory.make(getEFS().getExpression(),cb);
 					
 		/* <refactorableExpression.refactor()>.forEach(fr.lip6.pjava.loopexplore.util.rethrowConsumer(<lambdaExprForEach>)) */
 		MethodInvocation forEach = ASTUtil.newMethodInvocation(
 			refactorableExpression.refactor(), 
 			"forEach", 
 				ASTUtil.newLambdaExpression(
-					efs.getParameter(),
-					efs.getBody()
+					getEFS().getParameter(),
+					getEFS().getBody()
 				)
 		);
 		
@@ -427,5 +427,9 @@ public class EnhancedForLoopAnalyzer extends ASTVisitor
 		}
 		
 		return isMapOperation;
+	}
+
+	public EnhancedForStatement getEFS() {
+		return efs;
 	}
 }
