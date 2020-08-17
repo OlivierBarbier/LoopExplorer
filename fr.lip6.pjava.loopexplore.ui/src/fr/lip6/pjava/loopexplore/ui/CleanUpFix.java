@@ -1,9 +1,5 @@
 package fr.lip6.pjava.loopexplore.ui;
 
-import java.rmi.UnexpectedException;
-
-import javax.xml.crypto.dsig.keyinfo.RetrievalMethod;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -42,7 +38,6 @@ public class CleanUpFix implements ICleanUpFix {
 	final private CompilationUnit compilationUnit;
 	final private ICompilationUnit sourceDocument;
 	final private ASTRewrite rewriter;
-	@SuppressWarnings("unused")
 	final private IJavaProject javaProject;
 	final private AST ast;
 	final private ITypeBinding collectionTypeBinding;
